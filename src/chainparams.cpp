@@ -10,6 +10,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 
+#include <stdlib.h>
 #include <assert.h>
 
 #include <boost/assign/list_of.hpp>
@@ -50,12 +51,12 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
  *     CTxOut(nValue=50.00000000, scriptPubKey=0x5F1DF16B2B704C8A578D0B)
  *   vMerkleTree: 4a5e1e
  */
-static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
-{
-  const char* pszTimestamp = "hello world";
-  const CScript genesisOutputScript = CScript() << ParseHex("04611e0ef454e1e9b46f4b4c1693afd13753e0694e798d9732f82cad6e24ed5e46b92f507d4aa195e682674a9687903cfddc4143c6bf77b60b424b2d3a8de87824") << OP_CHECKSIG;
-  return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
-}
+// static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
+// {
+  // const char* pszTimestamp = "not support";
+  // const CScript genesisOutputScript = CScript() << ParseHex("not support") << OP_CHECKSIG;
+  // return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
+// }
 
 /**
  * Main network
@@ -70,14 +71,17 @@ static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits
 
 class CMainParams : public CChainParams {
 public:
-    CMainParams() {
+    CMainParams(const std::string& pszTimestamp, uint32_t nTime, const std::string& genesisBlockPubKey,
+                int32_t nVersion, const CAmount& genesisReward, uint32_t nNonce, 
+                const CMessageHeader::MessageStartChars& pchMessageStart, const std::string& powLimit,
+                const std::string& genesisBlockHash, const std::string& genesisBlockMerkleRootHash) {
         strNetworkID = "main";
         consensus.nSubsidyHalvingInterval = 840000;
         consensus.BIP34Height = 710000;
         consensus.BIP34Hash = uint256S("fa09d204a83a768ed5a7c8d441fa62f2043abf420cff1226c7b4329aeb9d51cf");
         consensus.BIP65Height = 918684; // bab3041e8977e0dc3eeff63fe707b92bde1dd449d8efafb248c27c8264cc311a
         consensus.BIP66Height = 811879; // 7aceee012833fa8952f8835d8b1b3ae233cd6ab08fdb27a771d2bd7bdc491894
-        consensus.powLimit = uint256S("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); 
+        consensus.powLimit = uint256S(powLimit); 
         consensus.nPowTargetTimespan = 3.5 * 24 * 60 * 60; // 3.5 days
         consensus.nPowTargetSpacing = 2.5 * 60;
         consensus.fPowAllowMinDifficultyBlocks = false;
@@ -109,28 +113,22 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 32-bit integer with any alignment.
          */
-        pchMessageStart[0] = 0x12;
-        pchMessageStart[1] = 0x23;
-        pchMessageStart[2] = 0x9c;
-        pchMessageStart[3] = 0xa0;
+        memcpy(&this->pchMessageStart, &pchMessageStart, sizeof(CMessageHeader::MessageStartChars));
         nDefaultPort = 9333;
         nPruneAfterHeight = 100000;
 
-        // genesis = CreateGenesisBlock(1317972665, 2084524493, 0x1e0ffff0, 1, 50 * COIN);
-        // consensus.hashGenesisBlock = genesis.GetHash();
-        // assert(consensus.hashGenesisBlock == uint256S("0x12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2"));
-        // assert(genesis.hashMerkleRoot == uint256S("0x97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9"));
-        LogPrintf("%x\n", GetNextWorkRequired(nullptr, &genesis, consensus));
-        genesis = CreateGenesisBlock(1317972665, 200, 0x2000ffff, 1, 50 * COIN);
+        const CScript genesisOutputScript = CScript() << ParseHex(genesisBlockPubKey) << OP_CHECKSIG;
+        uint32_t nBits = GetNextWorkRequired(nullptr, &genesis, consensus);
+        genesis = CreateGenesisBlock(pszTimestamp.c_str(), genesisOutputScript, nTime,
+                                     nNonce, nBits, nVersion, genesisReward);
 
-				// if (genesis.GetHash() != uint256S("be6bfe0d464be77633dddd5c7e33cec4089a5b65fcee88892f57945e0fce36fa")) {
-				if (true) {
-            LogPrintf("recalculating params for mainnet.\n");
-            LogPrintf("old mainnet genesis nonce: %ld\n", genesis.nNonce);
-						LogPrintf("old mainnet genesis merkle root: %s\n", genesis.hashMerkleRoot.ToString().c_str());
-            LogPrintf("old mainnet genesis hash:  %s\n", genesis.GetHash().ToString().c_str());
+				if (genesis.GetHash() != uint256S(genesisBlockHash.c_str())) {
+            fprintf(stdout, "recalculating params for mainnet.\n");
+            fprintf(stdout, "old mainnet genesis nonce: %u\n", genesis.nNonce);
+						fprintf(stdout, "old mainnet genesis nBits: %u\n", genesis.nBits);
+						fprintf(stdout, "old mainnet genesis merkle root: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+            fprintf(stdout, "old mainnet genesis hash:  %s\n", genesis.GetHash().ToString().c_str());
             // deliberately empty for loop finds nonce value.
-            genesis.nBits = GetNextWorkRequired(nullptr, &genesis, consensus);
             genesis.nNonce = 0;
             while (true) {
               if (CheckProofOfWork(genesis.GetPoWHash(), genesis.nBits, consensus)) {
@@ -141,14 +139,15 @@ public:
                 break;
               }
             }
-						LogPrintf("new mainnet genesis merkle root: %s\n", genesis.hashMerkleRoot.ToString().c_str());
-						LogPrintf("new mainnet genesis nonce: %ld\n", genesis.nNonce);
-						LogPrintf("new mainnet genesis hash: %s\n", genesis.GetHash().ToString().c_str());
+						fprintf(stdout, "new mainnet genesis nonce: %u\n", genesis.nNonce);
+						fprintf(stdout, "new mainnet genesis nBits: %u\n", genesis.nBits);
+						fprintf(stdout, "new mainnet genesis merkle root: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+						fprintf(stdout, "new mainnet genesis hash: %s\n", genesis.GetHash().ToString().c_str());
         }
-        
+
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("be6bfe0d464be77633dddd5c7e33cec4089a5b65fcee88892f57945e0fce36fa"));
-        assert(genesis.hashMerkleRoot == uint256S("b2788ee18f7651549b43ec4b3bbc8a8e1b07d85b1601a29ca929861225fc046a"));
+        assert(consensus.hashGenesisBlock == uint256S(genesisBlockHash.c_str()));
+        assert(genesis.hashMerkleRoot == uint256S(genesisBlockMerkleRootHash.c_str()));
 
         // Note that of those with the service bits flag, most only support a subset of possible options
         vSeeds.push_back(CDNSSeedData("loshan.co.uk", "seed-a.litecoin.loshan.co.uk", true));
@@ -202,21 +201,24 @@ public:
         };
     }
 };
-static CMainParams mainParams;
+static CMainParams* mainParams;
 
 /**
  * Testnet (v3)
  */
 class CTestNetParams : public CChainParams {
 public:
-    CTestNetParams() {
+    CTestNetParams(const std::string& pszTimestamp, uint32_t nTime, const std::string& genesisBlockPubKey,
+                   int32_t nVersion, const CAmount& genesisReward, uint32_t nNonce, 
+                   const CMessageHeader::MessageStartChars& pchMessageStart, const std::string& powLimit,
+                   const std::string& genesisBlockHash, const std::string& genesisBlockMerkleRootHash) {
         strNetworkID = "test";
         consensus.nSubsidyHalvingInterval = 840000;
         consensus.BIP34Height = 76;
         consensus.BIP34Hash = uint256S("8075c771ed8b495ffd943980a95f702ab34fce3c8c54e379548bda33cc8c0573");
         consensus.BIP65Height = 76; // 8075c771ed8b495ffd943980a95f702ab34fce3c8c54e379548bda33cc8c0573
         consensus.BIP66Height = 76; // 8075c771ed8b495ffd943980a95f702ab34fce3c8c54e379548bda33cc8c0573
-        consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        consensus.powLimit = uint256S(powLimit);
         consensus.nPowTargetTimespan = 3.5 * 24 * 60 * 60; // 3.5 days
         consensus.nPowTargetSpacing = 2.5 * 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
@@ -243,17 +245,18 @@ public:
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256S("0x43a16a626ef2ffdbe928f2bc26dcd5475c6a1a04f9542dfc6a0a88e5fcf9bd4c"); //8711
 
-        pchMessageStart[0] = 0xfd;
-        pchMessageStart[1] = 0xd2;
-        pchMessageStart[2] = 0xc8;
-        pchMessageStart[3] = 0xf1;
+        memcpy(&this->pchMessageStart, &pchMessageStart, sizeof(CMessageHeader::MessageStartChars));
         nDefaultPort = 19335;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1317972665, 200, 0x2000ffff, 1, 50 * COIN);
+        const CScript genesisOutputScript = CScript() << ParseHex(genesisBlockPubKey) << OP_CHECKSIG;
+        uint32_t nBits = GetNextWorkRequired(nullptr, &genesis, consensus);
+        genesis = CreateGenesisBlock(pszTimestamp.c_str(), genesisOutputScript, nTime,
+                                     nNonce, nBits, nVersion, genesisReward);
+        
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("be6bfe0d464be77633dddd5c7e33cec4089a5b65fcee88892f57945e0fce36fa"));
-        assert(genesis.hashMerkleRoot == uint256S("b2788ee18f7651549b43ec4b3bbc8a8e1b07d85b1601a29ca929861225fc046a"));
+        assert(consensus.hashGenesisBlock == uint256S(genesisBlockHash.c_str()));
+        assert(genesis.hashMerkleRoot == uint256S(genesisBlockMerkleRootHash.c_str()));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -292,21 +295,24 @@ public:
 
     }
 };
-static CTestNetParams testNetParams;
+static CTestNetParams *testNetParams;
 
 /**
  * Regression test
  */
 class CRegTestParams : public CChainParams {
 public:
-    CRegTestParams() {
+    CRegTestParams(const std::string& pszTimestamp, uint32_t nTime, const std::string& genesisBlockPubKey,
+                   int32_t nVersion, const CAmount& genesisReward, uint32_t nNonce, 
+                   const CMessageHeader::MessageStartChars& pchMessageStart, const std::string& powLimit,
+                   const std::string& genesisBlockHash, const std::string& genesisBlockMerkleRootHash) {
         strNetworkID = "regtest";
         consensus.nSubsidyHalvingInterval = 150;
         consensus.BIP34Height = 100000000; // BIP34 has not activated on regtest (far in the future so block v1 are not rejected in tests)
         consensus.BIP34Hash = uint256();
         consensus.BIP65Height = 1351; // BIP65 activated on regtest (Used in rpc activation tests)
         consensus.BIP66Height = 1251; // BIP66 activated on regtest (Used in rpc activation tests)
-        consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        consensus.powLimit = uint256S(powLimit);
         consensus.nPowTargetTimespan = 3.5 * 24 * 60 * 60; // two weeks
         consensus.nPowTargetSpacing = 2.5 * 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
@@ -329,17 +335,18 @@ public:
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256S("0x00");
 
-        pchMessageStart[0] = 0xfa;
-        pchMessageStart[1] = 0xbf;
-        pchMessageStart[2] = 0xb5;
-        pchMessageStart[3] = 0xda;
+        memcpy(&this->pchMessageStart, &pchMessageStart, sizeof(CMessageHeader::MessageStartChars));
         nDefaultPort = 19444;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1317972665, 200, 0x2000ffff, 1, 50 * COIN);
+        const CScript genesisOutputScript = CScript() << ParseHex(genesisBlockPubKey) << OP_CHECKSIG;
+        uint32_t nBits = GetNextWorkRequired(nullptr, &genesis, consensus);
+        genesis = CreateGenesisBlock(pszTimestamp.c_str(), genesisOutputScript, nTime,
+                                     nNonce, nBits, nVersion, genesisReward);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("be6bfe0d464be77633dddd5c7e33cec4089a5b65fcee88892f57945e0fce36fa"));
-        assert(genesis.hashMerkleRoot == uint256S("b2788ee18f7651549b43ec4b3bbc8a8e1b07d85b1601a29ca929861225fc046a"));
+        assert(consensus.hashGenesisBlock == uint256S(genesisBlockHash.c_str()));
+        assert(genesis.hashMerkleRoot == uint256S(genesisBlockMerkleRootHash.c_str()));
+
 
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
@@ -374,7 +381,7 @@ public:
         consensus.vDeployments[d].nTimeout = nTimeout;
     }
 };
-static CRegTestParams regTestParams;
+static CRegTestParams *regTestParams;
 
 static CChainParams *pCurrentParams = 0;
 
@@ -386,11 +393,11 @@ const CChainParams &Params() {
 CChainParams& Params(const std::string& chain)
 {
     if (chain == CBaseChainParams::MAIN)
-            return mainParams;
+            return *mainParams;
     else if (chain == CBaseChainParams::TESTNET)
-            return testNetParams;
+            return *testNetParams;
     else if (chain == CBaseChainParams::REGTEST)
-            return regTestParams;
+            return *regTestParams;
     else
         throw std::runtime_error(strprintf("%s: Unknown chain %s.", __func__, chain));
 }
@@ -403,5 +410,83 @@ void SelectParams(const std::string& network)
 
 void UpdateRegtestBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout)
 {
-    regTestParams.UpdateBIP9Parameters(d, nStartTime, nTimeout);
+    regTestParams->UpdateBIP9Parameters(d, nStartTime, nTimeout);
+}
+
+void InitChainParams()
+{
+  std::string pszTimestamp = GetArg("-cp_main_genesis_block_psz_timestamp", "hi");
+  uint32_t nTime = GetArg("-cp_main_genesis_block_ntime", 1000);
+  std::string genesisBlockPubKey = GetArg("-cp_main_genesis_block_pubkey", "");
+  int32_t nVersion = GetArg("-cp_main_genesis_block_version", 1);
+  uint32_t genesisReward = GetArg("-cp_main_genesis_block_reward", 50);
+  CAmount amountGenesisReward = genesisReward * COIN;
+  uint32_t nNonce = GetArg("-cp_main_genesis_block_nnonce", 0);
+
+  CMessageHeader::MessageStartChars pchMessageStart;
+  pchMessageStart[0] = strtol(GetArg("-cp_main_pch_message_start_0", "0x10").c_str(), NULL, 16);
+  pchMessageStart[1] = strtol(GetArg("-cp_main_pch_message_start_1", "0x10").c_str(), NULL, 16);
+  pchMessageStart[2] = strtol(GetArg("-cp_main_pch_message_start_2", "0x10").c_str(), NULL, 16);
+  pchMessageStart[3] = strtol(GetArg("-cp_main_pch_message_start_3", "0x10").c_str(), NULL, 16);
+
+  std::string powLimit = GetArg("-cp_main_powlimit", "");
+
+  std::string genesisBlockHash = GetArg("-cp_main_genesis_hash", "");
+  std::string genesisBlockMerkleRootHash = GetArg("-cp_main_genesis_merkle_root_hash", "");
+
+  mainParams = new CMainParams(pszTimestamp, nTime, genesisBlockPubKey,
+                               nVersion, amountGenesisReward, nNonce, 
+                               pchMessageStart, powLimit,
+                               genesisBlockHash, genesisBlockMerkleRootHash);
+
+  {
+    std::string tmpPszTimestamp = GetArg("-cp_net_genesis_block_psz_timestamp", pszTimestamp);
+    uint32_t tmpNTime = GetArg("-cp_net_genesis_block_ntime", nTime);
+    std::string tmpGenesisBlockPubKey = GetArg("-cp_net_genesis_block_pubkey", genesisBlockPubKey);
+    int32_t tmpNVersion = GetArg("-cp_net_genesis_block_version", nVersion);
+    CAmount tmpAmountGenesisReward = GetArg("-cp_net_genesis_block_reward", genesisReward) * COIN;
+    uint32_t tmpNNonce = GetArg("-cp_net_genesis_block_nnonce",  nNonce);
+
+    CMessageHeader::MessageStartChars tmpPchMessageStart;
+    tmpPchMessageStart[0] = strtol(GetArg("-cp_net_pch_message_start_0", "0x10").c_str(), NULL, pchMessageStart[0]+1);
+    tmpPchMessageStart[1] = strtol(GetArg("-cp_net_pch_message_start_0", "0x10").c_str(), NULL, pchMessageStart[1]);
+    tmpPchMessageStart[2] = strtol(GetArg("-cp_net_pch_message_start_0", "0x10").c_str(), NULL, pchMessageStart[2]);
+    tmpPchMessageStart[3] = strtol(GetArg("-cp_net_pch_message_start_0", "0x10").c_str(), NULL, pchMessageStart[3]);
+
+    std::string tmpPowLimit = GetArg("-cp_net_powlimit", powLimit);
+
+    std::string tmpGenesisBlockHash = GetArg("-cp_net_genesis_hash", genesisBlockHash);
+    std::string tmpGenesisBlockMerkleRootHash = GetArg("-cp_net_genesis_merkle_root_hash", genesisBlockMerkleRootHash);
+
+    testNetParams = new CTestNetParams(tmpPszTimestamp, tmpNTime, tmpGenesisBlockPubKey,
+                                       tmpNVersion, tmpAmountGenesisReward, tmpNNonce, 
+                                       tmpPchMessageStart, tmpPowLimit,
+                                       tmpGenesisBlockHash, tmpGenesisBlockMerkleRootHash);
+  }
+
+  {
+    std::string tmpPszTimestamp = GetArg("-cp_reg_genesis_block_psz_timestamp", pszTimestamp);
+    uint32_t tmpNTime = GetArg("-cp_reg_genesis_block_ntime", nTime);
+    std::string tmpGenesisBlockPubKey = GetArg("-cp_reg_genesis_block_pubkey", genesisBlockPubKey);
+    int32_t tmpNVersion = GetArg("-cp_reg_genesis_block_version", nVersion);
+    CAmount tmpAmountGenesisReward = GetArg("-cp_reg_genesis_block_reward", genesisReward) * COIN;
+    uint32_t tmpNNonce = GetArg("-cp_reg_genesis_block_nnonce",  nNonce);
+
+    CMessageHeader::MessageStartChars tmpPchMessageStart;
+    tmpPchMessageStart[0] = strtol(GetArg("-cp_reg_pch_message_start_0", "0x10").c_str(), NULL, pchMessageStart[0]+2);
+    tmpPchMessageStart[1] = strtol(GetArg("-cp_reg_pch_message_start_0", "0x10").c_str(), NULL, pchMessageStart[1]);
+    tmpPchMessageStart[2] = strtol(GetArg("-cp_reg_pch_message_start_0", "0x10").c_str(), NULL, pchMessageStart[2]);
+    tmpPchMessageStart[3] = strtol(GetArg("-cp_reg_pch_message_start_0", "0x10").c_str(), NULL, pchMessageStart[3]);
+
+    std::string tmpPowLimit = GetArg("-cp_reg_powlimit", powLimit);
+
+    std::string tmpGenesisBlockHash = GetArg("-cp_reg_genesis_hash", genesisBlockHash);
+    std::string tmpGenesisBlockMerkleRootHash = GetArg("-cp_reg_genesis_merkle_root_hash", genesisBlockMerkleRootHash);
+
+
+    regTestParams = new CRegTestParams(tmpPszTimestamp, tmpNTime, tmpGenesisBlockPubKey,
+                                       tmpNVersion, tmpAmountGenesisReward, tmpNNonce, 
+                                       tmpPchMessageStart, tmpPowLimit,
+                                       tmpGenesisBlockHash, tmpGenesisBlockMerkleRootHash);
+  }
 }
