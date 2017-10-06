@@ -4,11 +4,9 @@
 import signal
 
 __all__ = ["vw", "node"]
+#  def handler(signum, frame):
+    #  if signum == signal.SIGINT or signum == signal.SIGINT:
+        #  exit()
 
-def handler(signum, frame):
-    if signum == signal.SIGINT or signum == signal.SIGINT:
-        print('fuck')
-        exit()
-
-signal.signal(signal.SIGALRM, handler)
-signal.signal(signal.SIGINT, handler)
+#  signal.signal(signal.SIGALRM, handler)
+#  signal.signal(signal.SIGINT, handler)

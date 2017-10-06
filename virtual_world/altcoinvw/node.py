@@ -3,22 +3,26 @@
 
 import os
 import logging
+import uuid
 import subprocess
 
-class Node:
-    def __init__(self, vw, nodeID):
-        self.ID = nodeID
-        self.VirtualWorld = vw
-        self.DataBaseDir = os.path.join(vw.DataBaseDir,
-                'node.{nodeid}'.format(nodeid=self.ID))
+class MetaNode:
+    def __init__(self):
+        self.ID = None
+        self.Role = ''
+        self.IP = ''
 
-        self.LogName = 'Node.{nodeID}'.format(nodeID=nodeID)
-        self.LogFormat = logging.Formatter('%(pathname)s:%(lineno)d '
-                '%(asctime)s '
-                '%(levelname)s: %(message)s')
-        self.LogFilePath = os.path.join(self.DataBaseDir, 'node.log')
-        self.LogLevel = logging.ERROR
-        self.LoggerHandler = None
+
+def TemplateInitNode():
+    node = MetaNode()
+    node.ID = uuid.uuid1().__str__()
+    return node
+
+
+class Node:
+    def __init__(self, basePath):
+        self.AltcoinBinPath = altcoindBinPath
+        self.BasePath = basePath
         self.Logger = None
 
         self.ProcessStdOutFilePath = os.path.join(self.DataBaseDir, 'stdout.log')
@@ -30,17 +34,12 @@ class Node:
     def Init(self):
         if os.path.exists(self.DataBaseDir) == False:
             os.makedirs(self.DataBaseDir)
-        self.Logger = logging.getLogger(self.LogName)
-        self.LoggerHandler = logging.FileHandler(self.LogFilePath, mode='a+')
-        self.LoggerHandler.setLevel(self.LogLevel)
-        self.LoggerHandler.setFormatter(self.LogFormat)
-        self.Logger.addHandler(self.LoggerHandler)
 
         self.Logger.info('init success')
             
 
     def Run(self):
-        cmd = [self.VirtualWorld.AltcoindPath] + self.ProcessArgs
+        cmd = os.path.join([self.AltcoinBinPath], "altcoind") + self.ProcessArgs
         print(cmd)
         fout = open(self.ProcessStdOutFilePath, 'a')
         ferr = open(self.ProcessStdErrFilePath, 'a')

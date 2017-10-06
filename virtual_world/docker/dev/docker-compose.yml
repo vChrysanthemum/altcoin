@@ -7,13 +7,13 @@ services:
     volumes:
       - ../../../:/altcoin
   manager:
-    entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh "manager" ; bash'
+    entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh; bash'
     extends: common
     networks:
       altcoin_net:
         ipv4_address: 172.20.0.100
   altcoin0_a:
-    entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh "altcoin0" ; bash'
+    entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh; bash'
     extends: common
     networks:
       altcoin_net:
@@ -21,7 +21,7 @@ services:
     links:
       - manager
   altcoin1_a:
-    entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh "altcoin1" ; bash'
+    entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh; bash'
     extends: common
     networks:
       altcoin_net:
