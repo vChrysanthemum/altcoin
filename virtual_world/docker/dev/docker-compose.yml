@@ -1,0 +1,36 @@
+version: "2"
+services:
+  common:
+    tty: true
+    stdin_open: true
+    image: base
+    volumes:
+      - ../../../:/altcoin
+  manager:
+    entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh "manager" ; bash'
+    extends: common
+    networks:
+      altcoin_net:
+        ipv4_address: 172.20.0.100
+  altcoin0_a:
+    entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh "altcoin0" ; bash'
+    extends: common
+    networks:
+      altcoin_net:
+        ipv4_address: 172.20.0.101
+    links:
+      - manager
+  altcoin1_a:
+    entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh "altcoin1" ; bash'
+    extends: common
+    networks:
+      altcoin_net:
+        ipv4_address: 172.20.0.152
+    links:
+      - manager
+networks:
+  altcoin_net:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 172.20.0.0/16

@@ -19,4 +19,6 @@ COPY ./sshd_config /etc/ssh/sshd_config
 COPY ./tmux.conf /root/.tmux.conf
 COPY ./entrypoint.sh /root/entrypoint.sh
 
+RUN chmod 644 /etc/ssh/sshd_config
+
 CMD [ "sh", "-c", "/root/entrypoint.sh; bash"]
