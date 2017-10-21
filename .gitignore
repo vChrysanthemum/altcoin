@@ -3,8 +3,10 @@
 *.exe
 src/altcoin
 src/altcoind
+src/generate_altcoin
 src/altcoin-cli
 src/altcoin-tx
+data/
 
 src/litecoin
 src/litecoind

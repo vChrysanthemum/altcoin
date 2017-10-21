@@ -103,10 +103,12 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1517356801; // January 31st, 2018
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000006805c7318ce2736c0");
+        // consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000006805c7318ce2736c0");
+        consensus.nMinimumChainWork = uint256S("0x00");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x1673fa904a93848eca83d5ca82c7af974511a7e640e22edc2976420744f2e56a"); //1155631
+        // consensus.defaultAssumeValid = uint256S("0x1673fa904a93848eca83d5ca82c7af974511a7e640e22edc2976420744f2e56a"); //1155631
+        consensus.defaultAssumeValid = uint256S("0x00");
 
         /**
          * The message start string is designed to be unlikely to occur in normal data.
@@ -123,11 +125,11 @@ public:
                                      nNonce, nBits, nVersion, genesisReward);
 
 				if (genesis.GetHash() != uint256S(genesisBlockHash.c_str())) {
-            fprintf(stdout, "recalculating params for mainnet.\n");
-            fprintf(stdout, "old mainnet genesis nonce: %u\n", genesis.nNonce);
-						fprintf(stdout, "old mainnet genesis nBits: %u\n", genesis.nBits);
-						fprintf(stdout, "old mainnet genesis merkle root: %s\n", genesis.hashMerkleRoot.ToString().c_str());
-            fprintf(stdout, "old mainnet genesis hash:  %s\n", genesis.GetHash().ToString().c_str());
+            fprintf(stdout, "calculating genesis block.\n");
+            fprintf(stdout, "old genesis nonce: %u\n", genesis.nNonce);
+            fprintf(stdout, "old genesis nBits: %u\n", genesis.nBits);
+						fprintf(stdout, "old genesis merkle root: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+            fprintf(stdout, "old genesis hash:  %s\n", genesis.GetHash().ToString().c_str());
             // deliberately empty for loop finds nonce value.
             genesis.nNonce = 0;
             while (true) {
@@ -139,10 +141,10 @@ public:
                 break;
               }
             }
-						fprintf(stdout, "new mainnet genesis nonce: %u\n", genesis.nNonce);
-						fprintf(stdout, "new mainnet genesis nBits: %u\n", genesis.nBits);
-						fprintf(stdout, "new mainnet genesis merkle root: %s\n", genesis.hashMerkleRoot.ToString().c_str());
-						fprintf(stdout, "new mainnet genesis hash: %s\n", genesis.GetHash().ToString().c_str());
+						fprintf(stdout, "new genesis nonce: %u\n", genesis.nNonce);
+						fprintf(stdout, "new genesis nBits: %u\n", genesis.nBits);
+						fprintf(stdout, "new genesis merkle root: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+						fprintf(stdout, "new genesis hash: %s\n", genesis.GetHash().ToString().c_str());
         }
 
         consensus.hashGenesisBlock = genesis.GetHash();
@@ -240,10 +242,12 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1517356801; // January 31st, 2018
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000000000054cb9e7a0");
+        // consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000000000054cb9e7a0");
+        consensus.nMinimumChainWork = uint256S("0x00");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x43a16a626ef2ffdbe928f2bc26dcd5475c6a1a04f9542dfc6a0a88e5fcf9bd4c"); //8711
+        // consensus.defaultAssumeValid = uint256S("0x43a16a626ef2ffdbe928f2bc26dcd5475c6a1a04f9542dfc6a0a88e5fcf9bd4c"); //8711
+        consensus.defaultAssumeValid = uint256S("0x00");
 
         memcpy(&this->pchMessageStart, &pchMessageStart, sizeof(CMessageHeader::MessageStartChars));
         nDefaultPort = 19335;
@@ -429,7 +433,7 @@ void InitChainParams()
   pchMessageStart[2] = strtol(GetArg("-cp_main_pch_message_start_2", "0x10").c_str(), NULL, 16);
   pchMessageStart[3] = strtol(GetArg("-cp_main_pch_message_start_3", "0x10").c_str(), NULL, 16);
 
-  std::string powLimit = GetArg("-cp_main_powlimit", "");
+  std::string powLimit = GetArg("-cp_main_powlimit", "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 
   std::string genesisBlockHash = GetArg("-cp_main_genesis_hash", "");
   std::string genesisBlockMerkleRootHash = GetArg("-cp_main_genesis_merkle_root_hash", "");
