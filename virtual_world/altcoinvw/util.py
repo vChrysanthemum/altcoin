@@ -7,9 +7,9 @@ import os
 import time
 import base64
 
-def WebCheckModuleIfNeedReloadAndPrepareReload(moduleReloadTime, modulename):
-    path = os.path.join(BasePath, 'manager', '{}.py'.format(modulename))
-    if moduleReloadTime.has_key(modulename) == False or \
+def WebCheckModuleIfNeedReloadAndPrepareReload(basePath, parentModule, moduleReloadTime, modulename):
+    path = os.path.join(basePath, parentModule, '{}.py'.format(modulename))
+    if (modulename in moduleReloadTime) == False or \
             os.stat(path).st_mtime > moduleReloadTime[modulename]:
         moduleReloadTime[modulename] = time.time()
         return True

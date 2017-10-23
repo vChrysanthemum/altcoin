@@ -43,11 +43,18 @@ def WebAppAddUrlRule(name, func):
     WebApp.add_url_rule(name, name, view_func=func, methods=['GET', 'POST'])
 
 
+def WebCheckModuleIfNeedReloadAndPrepareReload(modulename):
+    return altcoinvw.util.WebCheckModuleIfNeedReloadAndPrepareReload(BasePath, 
+            'manager',
+            ModuleReloadTime,
+            modulename)
+
+
 def CtrRefresh():
     try:
-        if altcoinvw.util.WebCheckModuleIfNeedReloadAndPrepareReload('webindex') == True:
+        if WebCheckModuleIfNeedReloadAndPrepareReload('webindex') == True:
             imp.reload(webindex)
-        if altcoinvw.util.WebCheckModuleIfNeedReloadAndPrepareReload('webnode') == True:
+        if WebCheckModuleIfNeedReloadAndPrepareReload('webnode') == True:
             imp.reload(webnode)
 
     except Exception as e:

@@ -26,4 +26,10 @@ COPY ./bash_profile /root/.bash_profile
 
 RUN chmod 644 /etc/ssh/sshd_config
 
+RUN mkdir -p /root/.ssh
+COPY ./sshkey/altcoin /root/.ssh/id_rsa
+COPY ./sshkey/altcoin.pub /root/.ssh/id_rsa.pub
+COPY ./sshkey/altcoin.pub /root/.ssh/authorized_keys
+RUN chmod 600 /root/.ssh/authorized_keys
+
 CMD [ "sh", "-c", "/root/entrypoint.sh; bash"]

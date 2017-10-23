@@ -39,7 +39,9 @@ RhostsRSAAuthentication no
 # similar for protocol version 2
 HostbasedAuthentication no
 # Uncomment if you don't trust ~/.ssh/known_hosts for RhostsRSAAuthentication
-#IgnoreUserKnownHosts yes
+IgnoreUserKnownHosts yes
+#StrictHostKeyChecking no 
+#UserKnownHostsFile /dev/null 
 
 # To enable empty passwords, change to yes (NOT RECOMMENDED)
 PermitEmptyPasswords no

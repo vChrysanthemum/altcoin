@@ -1,0 +1,31 @@
+1-> rpc/mining.cpp UniValue generate(const JSONRPCRequest& request)
+  GetMainSignals().ScriptForMining(coinbaseScript)
+  validate coinbaseScript
+  2<- generateBlocks(coinbaseScript, nGenerate, nMaxTries, true);
+
+
+2-> rpc/mining.cp UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript,
+                                          int nGenerate, uint64_t nMaxTries, bool keepScript)
+  std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(coinbaseScript->reserveScript));
+  CBlock *pblock = &pblocktemplate->block;
+  IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
+
+  calculate nNonce
+  std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
+  3<- ProcessNewBlock(Params(), shared_pblock, true, NULL)
+  resultblockHashes.push_back(pblock->GetHash().GetHex());
+  if (keepScript)
+  {
+      coinbaseScript->KeepScript();
+  }
+
+3-> validate.cpp ProcessNewBlock(const CChainParams& chainparams,
+                                  const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool *fNewBlock)
+  CheckBlock(*pblock, state, chainparams.GetConsensus());
+  // store to disk
+  AcceptBlock(pblock, state, chainparams, &pindex, fForceProcessing, NULL, fNewBlock);
+    AcceptBlockHeader(block, state, chainparams, &pindex)
+    FindBlockPos(state, blockPos, nBlockSize+8, nHeight, block.GetBlockTime(), dbp != NULL)
+    WriteBlockToDisk(block, blockPos, chainparams.MessageStart())
+    ReceivedBlockTransactions(block, state, pindex, blockPos)
+    FlushStateToDisk(state, FLUSH_STATE_NONE)
