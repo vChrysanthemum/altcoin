@@ -32,4 +32,6 @@ COPY ./sshkey/altcoin.pub /root/.ssh/id_rsa.pub
 COPY ./sshkey/altcoin.pub /root/.ssh/authorized_keys
 RUN chmod 600 /root/.ssh/authorized_keys
 
+COPY lib/* /usr/lib/x86_64-linux-gnu/
+
 CMD [ "sh", "-c", "/root/entrypoint.sh; bash"]
