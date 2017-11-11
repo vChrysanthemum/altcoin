@@ -6,5 +6,5 @@ from flask import request
 
 import fullnode
 
-def CtrIndex():
+def CtrIndex(webServerEnv):
     return 'hello {ip}'.format(ip=request.remote_addr)

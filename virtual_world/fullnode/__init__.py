@@ -7,8 +7,9 @@ import logging
 from flask import Flask
 
 import altcoinvw.util
-from fullnode import webindex
-from fullnode import node
+from fullnode.node import *
+from fullnode.webindex import *
+from fullnode.webaltcoin import *
 
 __all__ = []
 
@@ -16,21 +17,19 @@ BasePath = os.path.abspath(os.path.join(sys.argv[0], '../'))
 Logger = logging.getLogger('')
 WebApp = Flask(__name__)
 
+class WebServerEnv:
+    def __init__(self):
+        self.Node = None
+
+
 def Start():
-    cfg = {
-            'loggingLevel': logging.DEBUG,
-            }
-    #  loggerHandler = logging.FileHandler(self.LogFilePath, mode='a+')
-    loggerHandler = logging.StreamHandler()
-    loggerHandler.setLevel(cfg['loggingLevel'])
-    loggerHandler.setFormatter(logging.Formatter('%(pathname)s:%(lineno)d %(asctime)s '
-        '%(levelname)-8s: %(message)s'))
-    Logger.addHandler(loggerHandler)
+    env = WebServerEnv()
+    env.Node = Node(BasePath)
+    env.Node.StartInNewThread()
 
-    node.Start()
-    return
-
-    WebAppAddUrlRule('/Index', lambda : webindex.CtrIndex())
+    WebAppAddUrlRule('/Index', lambda : CtrIndex(env))
+    WebAppAddUrlRule('/Altcoin/Kill', lambda : CtrAltcoinKill(env))
+    WebAppAddUrlRule('/Altcoin/Run', lambda : CtrAltcoinRun(env))
     WebApp.run(debug=False, host='0.0.0.0', port=80)
 
 

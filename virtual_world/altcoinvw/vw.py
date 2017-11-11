@@ -8,18 +8,19 @@ from altcoinvw import node
 
 class VirtualWorld:
     def __init__(self, basepath):
+        return
         basepath = basepath.strip()
         if basepath == '':
             basepath = os.getcwd()
 
         pwd = os.getcwd()
-        self.DataBaseDir = os.path.join(basepath, 'data')
+        self.DataBasePath = os.path.join(basepath, 'data')
         self.AltcoindPath = os.path.realpath(os.path.join(basepath, 'bin', 'altcoind'))
         print(self.AltcoindPath)
 
         self.LogName = 'VirtualWorld'
         self.LogFormat = logging.Formatter('%(pathname)s:%(lineno)d %(asctime)s%(levelname)-8s: %(message)s')
-        self.LogFilePath = os.path.join(self.DataBaseDir, 'altcoinvw.log')
+        self.LogFilePath = os.path.join(self.DataBasePath, 'altcoinvw.log')
         self.LogLevel = logging.ERROR
         self.LoggerHandler = None
         self.Logger = None
@@ -30,8 +31,9 @@ class VirtualWorld:
 
 
     def Init(self):
-        if os.path.exists(self.DataBaseDir) == False:
-            os.makedirs(self.DataBaseDir)
+        return
+        if os.path.exists(self.DataBasePath) == False:
+            os.makedirs(self.DataBasePath)
 
         if os.path.exists(self.AltcoindPath) == False:
             raise Exception('altcoind not exists')
