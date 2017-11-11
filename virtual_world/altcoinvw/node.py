@@ -7,7 +7,7 @@ import logging
 import socket
 import subprocess
 
-from altcoinvw import altcoinrpc
+from altcoinvw import altcoin
 
 class MetaNode:
     def __init__(self):
@@ -53,10 +53,10 @@ class Node:
         if os.path.exists(self.DataBasePath) == False:
             os.makedirs(self.DataBasePath)
 
-        cfg = altcoinrpc.ReadConfigFile(self.AltcoinTemplateConfPath)
+        cfg = altcoin.ReadConfigFile(self.AltcoinTemplateConfPath)
         cfg['datadir'] = self.DataBasePath
         cfg['rpcconnect'] = socket.gethostbyname(socket.gethostname())
-        altcoinrpc.WriteConfigFile(self.AltcoinConfPath, cfg)
+        altcoin.WriteConfigFile(self.AltcoinConfPath, cfg)
 
         self.LoggerHandler = logging.FileHandler(self.LogFilePath, mode='a+',
                 delay=False)
@@ -64,7 +64,7 @@ class Node:
         self.LoggerHandler.setFormatter(self.LogFormat)
         self.Logger.addHandler(self.LoggerHandler)
 
-        self.AltcoinProxy = altcoinrpc.AltcoinProxy(self.AltcoinConfPath)
+        self.AltcoinProxy = altcoin.AltcoinProxy(self.AltcoinConfPath)
 
 
         self.Logger.info('init success')

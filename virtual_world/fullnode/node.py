@@ -7,7 +7,7 @@ import time
 
 import fullnode
 import altcoinvw.util
-import altcoinvw.altcoinrpc
+import altcoinvw.altcoin
 import altcoinvw.node
 
 class Node(altcoinvw.node.Node):
