@@ -12,9 +12,29 @@ services:
     extends: common
     networks:
       altcoin_net:
+        ipv4_address: 10.0.0.2
+
+  altcoin00:
+    hostname: altcoin00
+    entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh; bash'
+    extends: common
+    networks:
+      altcoin_net:
         ipv4_address: 10.0.0.10
-  altcoin0_a:
-    hostname: altcoin0
+    links:
+      - manager
+  altcoin01:
+    hostname: altcoin01
+    entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh; bash'
+    extends: common
+    networks:
+      altcoin_net:
+        ipv4_address: 10.0.0.11
+    links:
+      - manager
+
+  altcoin10:
+    hostname: altcoin10
     entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh; bash'
     extends: common
     networks:
@@ -22,15 +42,17 @@ services:
         ipv4_address: 10.0.1.10
     links:
       - manager
-  altcoin1_a:
-    hostname: altcoin1
+
+  altcoin11:
+    hostname: altcoin11
     entrypoint: sh -c '/altcoin/virtual_world/docker/dev/run.node.sh; bash'
     extends: common
     networks:
       altcoin_net:
-        ipv4_address: 10.0.1.20
+        ipv4_address: 10.0.1.11
     links:
       - manager
+
 networks:
   altcoin_net:
     driver: bridge

@@ -26,26 +26,26 @@ class Node:
     def __init__(self, basePath):
         basePath = os.path.realpath(basePath)
         self.MetaNode = TemplateInitNode()
+        self.DataBasePath = os.path.join(basePath, 'data', self.MetaNode.ID)
         self.AltcoinDaemonBinPath = os.path.realpath(os.path.join(
-            basePath, "..", "src", "altcoind"))
+            basePath, '..', 'src', 'altcoind'))
         self.AltcoinCliBinPath = os.path.realpath(os.path.join(
-            basePath, "..", "src", "altcoin-cli"))
+            basePath, '..', 'src', 'altcoin-cli'))
+        self.AltcoinTemplateConfPath = os.path.join(
+                basePath, 'conf', 'altcoin0.template.conf')
         self.AltcoinConfPath = os.path.join(
-                basePath, "conf", "{}.conf".format(socket.gethostname()))
-        self.DataBasePath = os.path.join(basePath, "data", socket.gethostname())
+                self.DataBasePath, '{}.conf'.format(self.MetaNode.ID))
 
         self.LogName = self.MetaNode.ID
         self.LogLevel = logging.DEBUG
         self.LogFilePath = os.path.join(self.DataBasePath,
-                "{}.log".format(self.MetaNode.ID))
+                '{}.log'.format(self.MetaNode.ID))
         self.LogFormat = logging.Formatter('%(levelname)-6s %(pathname)s:%(lineno)d %(asctime)s: %(message)s')
         self.Logger = logging.getLogger(self.LogName)
 
-        self.AltcoinProxy = altcoinrpc.AltcoinProxy(self.AltcoinConfPath)
-
         self.ProcessStdOutFilePath = os.path.join(self.DataBasePath, 'stdout.log')
         self.ProcessStdErrFilePath = os.path.join(self.DataBasePath, 'stderr.log')
-        self.ProcessArgs = "-conf={}".format(self.AltcoinConfPath)
+        self.ProcessArgs = '-conf={}'.format(self.AltcoinConfPath)
         self.Process = None
 
 
@@ -53,11 +53,19 @@ class Node:
         if os.path.exists(self.DataBasePath) == False:
             os.makedirs(self.DataBasePath)
 
+        cfg = altcoinrpc.ReadConfigFile(self.AltcoinTemplateConfPath)
+        cfg['datadir'] = self.DataBasePath
+        cfg['rpcconnect'] = socket.gethostbyname(socket.gethostname())
+        altcoinrpc.WriteConfigFile(self.AltcoinConfPath, cfg)
+
         self.LoggerHandler = logging.FileHandler(self.LogFilePath, mode='a+',
                 delay=False)
         self.LoggerHandler.setLevel(self.LogLevel)
         self.LoggerHandler.setFormatter(self.LogFormat)
         self.Logger.addHandler(self.LoggerHandler)
+
+        self.AltcoinProxy = altcoinrpc.AltcoinProxy(self.AltcoinConfPath)
+
 
         self.Logger.info('init success')
             

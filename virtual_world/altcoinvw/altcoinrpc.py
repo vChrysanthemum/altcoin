@@ -31,6 +31,15 @@ def ReadConfigFile(filename):
     return cfg
 
 
+def WriteConfigFile(filename, cfg):
+    f = open(filename, 'w+')
+    try:
+        for key in cfg:
+            f.write('{}={}\n'.format(key, cfg[key]))
+    finally:
+        f.close()
+
+
 class JSONRPCException(Exception):
     def __init__(self, rpcError):
         Exception.__init__(self)
