@@ -7,6 +7,8 @@ import logging
 import socket
 import subprocess
 
+from altcoinvw import altcoinrpc
+
 class MetaNode:
     def __init__(self):
         self.ID = None
@@ -38,6 +40,8 @@ class Node:
                 "{}.log".format(self.MetaNode.ID))
         self.LogFormat = logging.Formatter('%(levelname)-6s %(pathname)s:%(lineno)d %(asctime)s: %(message)s')
         self.Logger = logging.getLogger(self.LogName)
+
+        self.AltcoinProxy = altcoinrpc.AltcoinProxy(self.AltcoinConfPath)
 
         self.ProcessStdOutFilePath = os.path.join(self.DataBasePath, 'stdout.log')
         self.ProcessStdErrFilePath = os.path.join(self.DataBasePath, 'stderr.log')

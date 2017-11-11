@@ -30,6 +30,7 @@ def Start():
     WebAppAddUrlRule('/Index', lambda : CtrIndex(env))
     WebAppAddUrlRule('/Altcoin/Kill', lambda : CtrAltcoinKill(env))
     WebAppAddUrlRule('/Altcoin/Run', lambda : CtrAltcoinRun(env))
+    WebAppAddUrlRule('/Altcoin/Call', lambda : CtrAltcoinCall(env))
     WebApp.run(debug=False, host='0.0.0.0', port=80)
 
 
