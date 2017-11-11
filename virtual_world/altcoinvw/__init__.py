@@ -3,6 +3,8 @@
 
 import signal
 
+ALTCOIN_PORT=9333
+
 __all__ = ["vw", "node"]
 #  def handler(signum, frame):
     #  if signum == signal.SIGINT or signum == signal.SIGINT:

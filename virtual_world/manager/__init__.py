@@ -16,26 +16,29 @@ __all__ = []
 
 BasePath = os.path.abspath(os.path.join(sys.argv[0], '../'))
 Logger = logging.getLogger('')
-ModuleReloadTime = {}
-Nodes = {}
 WebApp = Flask(__name__)
 
 
+class WebServerEnv:
+    def __init__(self):
+        self.ModuleReloadTime = {}
+        self.Nodes = {}
+        self.Logger = Logger
+
+
 def Start():
-    cfg = {
-            'loggingLevel': logging.DEBUG,
-            }
-    #  loggerHandler = logging.FileHandler(self.LogFilePath, mode='a+')
+    env = WebServerEnv()
+
     loggerHandler = logging.StreamHandler()
-    loggerHandler.setLevel(cfg['loggingLevel'])
+    loggerHandler.setLevel(logging.DEBUG)
     loggerHandler.setFormatter(logging.Formatter('%(pathname)s:%(lineno)d %(asctime)s '
         '%(levelname)-8s: %(message)s'))
     Logger.addHandler(loggerHandler)
 
-    WebAppAddUrlRule('/Index', lambda : webindex.CtrIndex())
-    WebAppAddUrlRule('/RegisterNode', lambda : webnode.CtrRegisterNode())
-    WebAppAddUrlRule('/ListNodes', lambda : webnode.CtrListNodes())
-    WebAppAddUrlRule('/Refresh', CtrRefresh)
+    WebAppAddUrlRule('/Index', lambda : webindex.CtrIndex(env))
+    WebAppAddUrlRule('/RegisterNode', lambda : webnode.CtrRegisterNode(env))
+    WebAppAddUrlRule('/ListNodes', lambda : webnode.CtrListNodes(env))
+    WebAppAddUrlRule('/Refresh', lambda: CtrRefresh(env))
     WebApp.run(debug=False, host='0.0.0.0', port=80)
 
 
@@ -50,7 +53,7 @@ def WebCheckModuleIfNeedReloadAndPrepareReload(modulename):
             modulename)
 
 
-def CtrRefresh():
+def CtrRefresh(env):
     try:
         if WebCheckModuleIfNeedReloadAndPrepareReload('webindex') == True:
             imp.reload(webindex)

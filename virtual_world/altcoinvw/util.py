@@ -6,6 +6,7 @@ import json
 import os
 import time
 import base64
+import requests
 
 def WebCheckModuleIfNeedReloadAndPrepareReload(basePath, parentModule, moduleReloadTime, modulename):
     path = os.path.join(basePath, parentModule, '{}.py'.format(modulename))
@@ -48,3 +49,11 @@ def WebApiOutput(errno, errmsg='', obj=None):
         'obj' : obj,
         'errmsg' : errmsg,
         })
+
+
+def RequestPost(url, data={}, headers={}):
+    responseText = None
+    response = requests.post(url, data=data, headers=headers, stream=True)
+    responseText = response.text
+    response.close()
+    return responseText

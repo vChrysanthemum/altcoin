@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import threading
-import requests
 import time
+import json
 
 import fullnode
 import altcoinvw.util
@@ -16,20 +16,15 @@ class Node(altcoinvw.node.Node):
         self.MetaNode.Role = 'fullnode'
         self.Init()
         self.Thread = None
-
-
-    def ensureAccountRice(self):
-        result, err = self.AltcoinProxy.Call('listaccounts', [])
-        if err != None:
-            self.Logger.error(err)
-        if (result[""] == 0):
-            self.AltcoinProxy.Call('generate', [102])
+        self.MemberNodes = {}
 
 
     def loopJob(self):
         while True:
             time.sleep(2)
-            self.ensureAccountRice()
+            self.registerInManager()
+            self.refreshMemberNodes()
+            #  self.ensureAccountRich()
 
 
     def StartInNewThread(self):
@@ -37,15 +32,44 @@ class Node(altcoinvw.node.Node):
         self.Thread.start()
         self.Thread = threading.Thread(target=self.loopJob)
         self.Thread.start()
-        self.RegisterInManager()
         return self.Thread
 
 
-    def RegisterInManager(self):
+    def registerInManager(self):
         postData = {}
         postData['Node'] = altcoinvw.util.WebSerializeObject(self.MetaNode)
         try:
-            response = requests.post('http://manager/RegisterNode', data=postData)
-            self.Logger.fatal(response.text)
+            response = altcoinvw.util.RequestPost('http://manager/RegisterNode', data=postData)
+            self.Logger.debug(response)
         except Exception as e:
             self.Logger.error(e)
+
+
+    def refreshMemberNodes(self):
+        try:
+            response = altcoinvw.util.RequestPost('http://manager/ListNodes')
+            memberNodes = json.loads(response)
+            for memberNode in memberNodes:
+                if memberNode['ID'] == self.MetaNode.ID:
+                    continue
+                if memberNode['ID'] in self.MemberNodes:
+                    continue
+                result, err = self.AltcoinProxy.Call('addnode',
+                        ['{}:{}'.format(memberNode['IP'],
+                            altcoinvw.ALTCOIN_PORT), "add"])
+                if err != None:
+                    self.Logger.error(str(err))
+                    continue
+                self.Logger.info(result)
+                self.MemberNodes[memberNode['ID']] = memberNode
+        except Exception as e:
+            print(str(e))
+            self.Logger.error(e)
+
+
+    def ensureAccountRich(self):
+        result, err = self.AltcoinProxy.Call('listaccounts', [])
+        if err != None:
+            self.Logger.error(err)
+        if (result[""] == 0):
+            self.AltcoinProxy.Call('generate', [102])

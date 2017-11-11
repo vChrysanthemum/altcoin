@@ -6,5 +6,5 @@ from flask import request
 
 import manager
 
-def CtrIndex():
+def CtrIndex(env):
     return 'hello {ip}'.format(ip=request.remote_addr)

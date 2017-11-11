@@ -8,16 +8,16 @@ from flask import request
 
 from fullnode import *
 
-def CtrAltcoinKill(webServerEnv):
-    webServerEnv.Node.Kill()
-    return '{}'.format(webServerEnv.Node.Wait())
+def CtrAltcoinKill(env):
+    env.Node.Kill()
+    return '{}'.format(env.Node.Wait())
 
 
-def CtrAltcoinRun(webServerEnv):
-    return '{}'.format(webServerEnv.Node.Run())
+def CtrAltcoinRun(env):
+    return '{}'.format(env.Node.Run())
 
 
-def CtrAltcoinCall(webServerEnv):
+def CtrAltcoinCall(env):
     method, args = None, None
     try:
         method = request.args.get('method', '')
@@ -25,7 +25,7 @@ def CtrAltcoinCall(webServerEnv):
     except Exception as e:
         pass
 
-    result, err = webServerEnv.Node.AltcoinProxy.Call(method, args)
+    result, err = env.Node.AltcoinProxy.Call(method, args)
     if err != None:
         return str(err)
 
